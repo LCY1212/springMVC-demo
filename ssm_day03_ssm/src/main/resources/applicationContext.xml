@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!-- 开启包扫描注解，除Controller注解 -->
+    <context:component-scan base-package="com.lcy">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!-- spring和mybatis整合 -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="typeAliasesPackage" value="com.lcy.domain"/>
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.lcy.dao"/>
+    </bean>
+
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="username" value="root"/>
+        <property name="password" value="root"/>
+        <property name="url" value="jdbc:mysql:///day05"/>
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+    </bean>
+
+    <!-- 配置事务 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <tx:advice transaction-manager="transactionManager" id="tx">
+        <tx:attributes>
+            <tx:method name="*"/>
+            <tx:method name="find*" read-only="true" propagation="SUPPORTS"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <aop:config >
+        <aop:advisor advice-ref="tx" pointcut="execution(* com.lcy.service.impl.*.*(..))"/>
+    </aop:config>
+
+
+
+</beans>
